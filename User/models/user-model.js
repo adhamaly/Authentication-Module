@@ -8,7 +8,7 @@ const userSchema = mongoose.Schema({
   email: { type: String, required: true, trim: true, unique: true },
   password: { type: String, required: true, select: false, trim: true },
 
-  passwordResetToken: { data: String, default: "" },
+  passwordResetToken: { type: String, default: "" },
 });
 // pre(action,callback) eventListener that called in callStack when event/action is raised in NODE ENVIRONMENT
 // in our app:- saving document event is raised node environment

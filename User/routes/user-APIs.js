@@ -5,6 +5,8 @@ const {
   userLoginValidation,
   userIdValidation,
   updateUserValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
 } = require("../validation/user-auth-validation");
 const UserAuthenticationService = require("../service/user-authentication-service");
 const userAuthService = new UserAuthenticationService();
@@ -19,8 +21,8 @@ const UserService = require("../service/user-authentication-service");
 router.post("/register", userRegisterValidation, registerHandler);
 router.post("/accountActivation", accountActivationHandler);
 router.post("/login", userLoginValidation, loginHandler);
-router.post("/forgotPasswordd", ForgetPasswordHandler);
-router.post("/resetPassword", resetPasswordHandler);
+router.post("/forgotPassword", forgotPasswordValidation, ForgetPasswordHandler);
+router.post("/resetPassword", resetPasswordValidation, resetPasswordHandler);
 
 // GET request's
 router.get("/profile/:id", isAuthorized, userIdValidation, userProfileHandler);

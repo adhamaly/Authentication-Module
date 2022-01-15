@@ -63,9 +63,30 @@ const updateUserValidation = [
   ErrorHandler,
 ];
 
+const forgotPasswordValidation = [
+  check("email").trim().not().isEmpty().withMessage("enter email"),
+  ErrorHandler,
+];
+const resetPasswordValidation = [
+  check("passwordResetToken")
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage("reset password token is missed"),
+  check("newPassword")
+    .not()
+    .isEmpty()
+    .withMessage("enter password")
+    .bail()
+    .isLength({ min: 8 }),
+  ErrorHandler,
+];
+
 module.exports = {
   userRegisterValidation,
   userLoginValidation,
   userIdValidation,
   updateUserValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
 };

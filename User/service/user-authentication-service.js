@@ -19,10 +19,6 @@ class UserService {
     if (userExist)
       throw new MethodNotAllowed(`${userExist.email} already exist`);
 
-    const user = await UserModel.create({ name, phone, email, password });
-    return user;
-
-    /*
     // create token
     const token = jwt.sign(
       { name, phone, email, password },
@@ -48,7 +44,6 @@ class UserService {
       .catch((err) => {
         throw new MethodNotAllowed(err.message);
       });
-      */
   }
 
   async accountActivationHandler(body) {
@@ -116,7 +111,7 @@ class UserService {
     return { ...user._doc, password: undefined, passwordResetToken: undefined };
   }
   async forgotPassword(body) {
-    const { email } = body.email;
+    const { email } = body;
     //checking if user is within our system
     const user = await UserModel.findOne({ email });
     if (!user) throw new MethodNotAllowed("email does not exist in our system");
@@ -125,6 +120,7 @@ class UserService {
     const token = jwt.sign(
       {
         _id: user._id,
+        email: email,
       },
       process.env.JWT_RESET_PASSWORD,
       {
@@ -145,18 +141,15 @@ class UserService {
                 <p>${process.env.CLIENT_URL}</p>
             `,
     };
-
-    //check user ById and then update the resetToken in database
-    const updateUserToken = await UserModel.findByIdAndUpdate(user._id, {
-      passwordResetToken: token,
-    });
-    if (!updateUserToken) throw new MethodNotAllowed("error ..");
+    // save reset token in user
+    user.passwordResetToken = token;
+    await user.save();
 
     // send emial
     const sentEmail = await sgMail.send(emailData);
     if (!sentEmail) throw new MethodNotAllowed("error sending ..");
 
-    return `Email has been sent to ${body.email}. Follow the instruction to activate your account`;
+    return `Email has been sent to ${email}. Follow the instruction to reset your password,token ${token}`;
   }
 
   async resetPassword(body) {
@@ -171,14 +164,6 @@ class UserService {
         passwordResetToken,
         process.env.JWT_RESET_PASSWORD
       );
-
-      /*
-      // adding payload {id,isAdmin} into request.user object
-      const _id = decoded._id;
-      //check user
-      const user = await UserModel.findById(_id);
-      if (!user) throw new MethodNotAllowed("user does not exist");
-*/
       // chech token with user
       let userExits = await UserModel.findOne({
         passwordResetToken,
@@ -193,11 +178,15 @@ class UserService {
 
       userExits = _.extend(userExits, updatedFields);
 
-      const resultUser = userExits.save();
+      const resultUser = await userExits.save();
       if (!resultUser)
         throw new MethodNotAllowed("Error resetting user password");
 
-      return resultUser;
+      return {
+        ...resultUser._doc,
+        password: undefined,
+        passwordResetToken: undefined,
+      };
     } catch (err) {
       throw new Forbidden("Invalid Token");
     }
